@@ -44,6 +44,16 @@ def liked_movie():
     })
 
 # api to return list of liked movies
+@app.route("/likeList")
+def likeListMovies():
+    global liked_movies
+    return jsonify({
+        "data":liked_movies,
+        "status":"success"
+    })
+
+
+
 
 
 
@@ -74,13 +84,48 @@ def did_not_watch_view():
     })
 
 # api to return list of popular movies
-
+@app.route("/PopularMovies")
+def PopularMoviesData():
+    Popular_Movies_Data = []
+    for index, row in output.iterrows():
+        pm = {
+            "Original_title":row["original_title"], 
+            "poster_link":row["poster_link"],
+            "release_date":row["release_date"],
+            "duration":row["runtime"],
+            "rating":row["weighted_rating"]/2
+        }
+        Popular_Movies_Data.append(pm)
+    return jsonify({
+        "data":Popular_Movies_Data,
+        "status":"success"
+    })
 
 
 
 # api to return list of recommended movies
-
-
-
+@app.route("/Recommended_Movies")
+def Recommended_Movies_data():
+    global liked_movies
+    columnNames = ["original_title","poster_link","release_date","runtime","weighted_rating"]
+    all_recommended = pd.DataFrame(columns=columnNames)
+    for i in liked_movies:
+        output = get_recommendations(i["original_title"])
+        all_recommended = all_recommended.append(output)
+    all_recommended.drop_duplicates(subset=["original_title"],inplace=True)
+    recommendedMovieData = []
+    for index, row in all_recommended.iterrows():
+        pm = {
+            "Original_title":row["original_title"], 
+            "poster_link":row["poster_link"],
+            "release_date":row["release_date"],
+            "duration":row["runtime"],
+            "rating":row["weighted_rating"]/2
+        }
+        recommendedMovieData.append(pm)
+    return jsonify({
+        "data":recommendedMovieData,
+        "status":"success"
+    })
 if __name__ == "__main__":
   app.run()
